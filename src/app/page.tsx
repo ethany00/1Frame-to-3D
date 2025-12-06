@@ -31,7 +31,7 @@ export default function Home() {
 
         try {
             // 배경 제거 시작
-            setProcessingStage('AI 배경 제거 중... (10-20초 소요)');
+            setProcessingStage('AI가 꼼꼼하게 배경을 제거하고 있습니다... (5-10초 소요)');
             setProgress(10);
 
             const backgroundRemovedBlob = await removeImageBackground(file, (progressPercent) => {

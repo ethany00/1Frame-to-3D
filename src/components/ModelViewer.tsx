@@ -103,7 +103,7 @@ export default function ModelViewer({ modelUrl }: ModelViewerProps) {
     useEffect(() => {
         const timer = setTimeout(() => {
             setIs3DLoading(false);
-        }, 1500);
+        }, 2000);
 
         return () => clearTimeout(timer);
     }, []);

@@ -49,15 +49,15 @@ export async function removeImageBackground(
     onProgress?: (progress: number) => void
 ): Promise<Blob> {
     try {
-        // 빠른 처리를 위해 리사이징 (최대 1024px)
-        const resizedFile = await resizeImage(imageFile, 1024);
+        // 고품질 처리를 위해 원본 이미지 사용
+        // const resizedFile = await resizeImage(imageFile, 1024);
 
-        // 최적화된 설정 (경량 모델 사용)
+        // 고품질 설정
         const config: Config = {
-            model: 'isnet_quint8', // 양자화된 모델 사용으로 속도 향상
+            model: 'isnet', // 고품질 기본 모델 사용
             output: {
                 format: 'image/png',
-                quality: 0.8,
+                quality: 1.0, // 최대 품질
             },
             progress: (key, current, total) => {
                 const percentage = Math.round((current / total) * 100);
@@ -66,7 +66,7 @@ export async function removeImageBackground(
         };
 
         // 배경 제거 실행
-        const blob = await removeBackground(resizedFile, config);
+        const blob = await removeBackground(imageFile, config);
 
         return blob;
     } catch (error) {
