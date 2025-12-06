@@ -16,7 +16,7 @@ function Model({ url }: { url: string }) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Load the uploaded image as texture
+    // 텍스처 로드
     useEffect(() => {
         setIsLoading(true);
         setError(null);
@@ -37,14 +37,14 @@ function Model({ url }: { url: string }) {
         );
     }, [url]);
 
-    // Auto-rotate the model slowly
+    // 모델 자동 회전
     useFrame((state, delta) => {
         if (meshRef.current) {
             meshRef.current.rotation.y += delta * 0.2;
         }
     });
 
-    // Show loading state
+    // 로딩 상태
     if (isLoading) {
         return (
             <group>
@@ -60,7 +60,7 @@ function Model({ url }: { url: string }) {
         );
     }
 
-    // Show error state
+    // 에러 상태
     if (error || !texture) {
         return (
             <group ref={meshRef}>
@@ -72,26 +72,16 @@ function Model({ url }: { url: string }) {
         );
     }
 
-    // Create a 3D plane with the uploaded image as texture
-    // Adding slight curvature for depth effect
+    // 배경 제거된 이미지 렌더링 (투명도 지원)
     return (
         <group ref={meshRef}>
-            {/* Main image plane */}
             <mesh castShadow receiveShadow>
                 <planeGeometry args={[4, 4, 32, 32]} />
                 <meshStandardMaterial
                     map={texture}
                     side={THREE.DoubleSide}
-                />
-            </mesh>
-
-            {/* Back layer for depth */}
-            <mesh position={[0, 0, -0.2]} receiveShadow>
-                <planeGeometry args={[4.2, 4.2]} />
-                <meshStandardMaterial
-                    color="#1a1a2e"
-                    metalness={0.3}
-                    roughness={0.7}
+                    transparent={true}
+                    alphaTest={0.1}
                 />
             </mesh>
         </group>
@@ -109,9 +99,8 @@ function Loader() {
 export default function ModelViewer({ modelUrl }: ModelViewerProps) {
     const [is3DLoading, setIs3DLoading] = useState(true);
 
-    // Track when the 3D scene is ready
+    // 3D 씬 로딩 지연 처리
     useEffect(() => {
-        // Give a short delay for Canvas to mount
         const timer = setTimeout(() => {
             setIs3DLoading(false);
         }, 1500);
@@ -137,7 +126,7 @@ export default function ModelViewer({ modelUrl }: ModelViewerProps) {
                 </div>
 
                 <div className="relative w-full h-[500px] md:h-[600px] rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900/20 to-pink-900/20">
-                    {/* Loading overlay */}
+                    {/* 로딩 오버레이 */}
                     {is3DLoading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 backdrop-blur-sm">
                             <div className="text-center">
@@ -151,7 +140,7 @@ export default function ModelViewer({ modelUrl }: ModelViewerProps) {
                     <Canvas shadows>
                         <PerspectiveCamera makeDefault position={[5, 5, 5]} />
 
-                        {/* Lighting */}
+                        {/* 조명 설정 */}
                         <ambientLight intensity={0.5} />
                         <directionalLight
                             position={[10, 10, 5]}
@@ -163,21 +152,21 @@ export default function ModelViewer({ modelUrl }: ModelViewerProps) {
                         <pointLight position={[-10, -10, -5]} intensity={0.5} color="#ec4899" />
                         <pointLight position={[10, 10, 10]} intensity={0.5} color="#8b5cf6" />
 
-                        {/* Environment */}
+                        {/* 환경광 */}
                         <Environment preset="city" />
 
-                        {/* Model */}
+                        {/* 3D 모델 */}
                         <Suspense fallback={null}>
                             <Model url={modelUrl} />
                         </Suspense>
 
-                        {/* Ground plane */}
+                        {/* 바닥 그림자 */}
                         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} receiveShadow>
                             <planeGeometry args={[20, 20]} />
                             <shadowMaterial opacity={0.3} />
                         </mesh>
 
-                        {/* Controls */}
+                        {/* 카메라 컨트롤 */}
                         <OrbitControls
                             enablePan={true}
                             enableZoom={true}
@@ -188,7 +177,7 @@ export default function ModelViewer({ modelUrl }: ModelViewerProps) {
                         />
                     </Canvas>
 
-                    {/* Control hints */}
+                    {/* 컨트롤 안내 */}
                     <div className="absolute bottom-4 left-4 glass-effect rounded-xl px-4 py-2 text-sm">
                         <div className="flex items-center gap-2">
                             <span className="text-purple-400">🖱️</span>
@@ -204,7 +193,7 @@ export default function ModelViewer({ modelUrl }: ModelViewerProps) {
                     </div>
                 </div>
 
-                {/* Stats */}
+                {/* 통계 정보 */}
                 <div className="mt-6 grid grid-cols-3 gap-4">
                     {[
                         { label: '폴리곤', value: '12.5K' },

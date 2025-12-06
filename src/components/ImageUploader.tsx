@@ -30,16 +30,20 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
         if (file && file.type.startsWith('image/')) {
             setSelectedFile(file);
             setPreview(URL.createObjectURL(file));
+            // Auto-upload immediately
+            onImageUpload(file);
         }
-    }, []);
+    }, [onImageUpload]);
 
     const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             setSelectedFile(file);
             setPreview(URL.createObjectURL(file));
+            // Auto-upload immediately
+            onImageUpload(file);
         }
-    }, []);
+    }, [onImageUpload]);
 
     const handleUpload = () => {
         if (selectedFile) {

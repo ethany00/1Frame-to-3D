@@ -5,9 +5,10 @@ import { motion } from 'framer-motion';
 interface LoadingProgressProps {
     progress: number;
     image: string | null;
+    processingStage?: string;
 }
 
-export default function LoadingProgress({ progress, image }: LoadingProgressProps) {
+export default function LoadingProgress({ progress, image, processingStage }: LoadingProgressProps) {
     return (
         <div className="w-full max-w-2xl mx-auto">
             <motion.div
@@ -33,7 +34,7 @@ export default function LoadingProgress({ progress, image }: LoadingProgressProp
                             transition={{ duration: 2, repeat: Infinity }}
                             className="text-2xl font-semibold gradient-text mb-2"
                         >
-                            AI가 3D 모델을 생성하고 있습니다...
+                            {processingStage || 'AI가 3D 모델을 생성하고 있습니다...'}
                         </motion.h3>
                         <p className="text-gray-400">
                             잠시만 기다려주세요

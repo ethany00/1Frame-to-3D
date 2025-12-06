@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import ImageUploader from '@/components/ImageUploader';
 import LoadingProgress from '@/components/LoadingProgress';
+import { removeImageBackground, blobToDataURL } from '@/utils/backgroundRemoval';
 
-// Dynamically import ModelViewer to avoid SSR issues with Three.js
+// Three.js SSR 에러 방지
 const ModelViewer = dynamic(() => import('@/components/ModelViewer'), {
     ssr: false,
     loading: () => <div className="text-center text-purple-500">Loading 3D Viewer...</div>
@@ -17,35 +18,48 @@ export default function Home() {
     const [modelUrl, setModelUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [processingStage, setProcessingStage] = useState<string>('');
 
     const handleImageUpload = async (file: File) => {
-        const imageUrl = URL.createObjectURL(file);
-        setUploadedImage(imageUrl);
+        // 로딩 상태 즉시 표시
         setIsLoading(true);
         setProgress(0);
+        setProcessingStage('이미지 준비 중...');
 
-        // Simulate progress
-        const progressInterval = setInterval(() => {
-            setProgress((prev) => {
-                if (prev >= 90) {
-                    clearInterval(progressInterval);
-                    return 90;
-                }
-                return prev + 10;
+        const imageUrl = URL.createObjectURL(file);
+        setUploadedImage(imageUrl);
+
+        try {
+            // 배경 제거 시작
+            setProcessingStage('AI 배경 제거 중... (10-20초 소요)');
+            setProgress(10);
+
+            const backgroundRemovedBlob = await removeImageBackground(file, (progressPercent) => {
+                setProgress(Math.max(10, progressPercent)); // Ensure progress is at least 10%
             });
-        }, 300);
 
-        // Simulate processing time (2 seconds)
-        setTimeout(() => {
-            clearInterval(progressInterval);
+            setProcessingStage('3D 변환 준비 중...');
+
+            // Blob을 Data URL로 변환
+            const processedImageUrl = await blobToDataURL(backgroundRemovedBlob);
+
             setProgress(100);
 
-            // Use the uploaded image directly as the 3D model texture
+            // 3D 뷰어에 결과 표시
             setTimeout(() => {
-                setModelUrl(imageUrl);
+                setModelUrl(processedImageUrl);
                 setIsLoading(false);
-            }, 500);
-        }, 2000);
+                setProcessingStage('');
+            }, 300);
+        } catch (error) {
+            console.error('Background removal failed:', error);
+            setIsLoading(false);
+            setProcessingStage('');
+            alert('캐릭터 추출에 실패했습니다. 다른 이미지를 시도해주세요.');
+
+            // 실패시 원본 이미지 사용
+            setModelUrl(imageUrl);
+        }
     };
 
     const handleReset = () => {
@@ -53,6 +67,7 @@ export default function Home() {
         setModelUrl(null);
         setIsLoading(false);
         setProgress(0);
+        setProcessingStage('');
     };
 
     return (
@@ -104,7 +119,11 @@ export default function Home() {
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.4 }}
                             >
-                                <LoadingProgress progress={progress} image={uploadedImage} />
+                                <LoadingProgress
+                                    progress={progress}
+                                    image={uploadedImage}
+                                    processingStage={processingStage}
+                                />
                             </motion.div>
                         )}
 
